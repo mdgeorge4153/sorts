@@ -15,5 +15,5 @@ let map2 f a1 a2 =
   if len1 = len2 then
     Array.init len1 (fun i -> f a1.(i) a2.(i))
   else
-    raise Invalid_argument "Array.map2"
+    raise (Invalid_argument "Array.map2")
 
