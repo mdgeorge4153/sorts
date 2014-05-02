@@ -29,11 +29,10 @@ module Make (M : SortMonad) = struct
     swap pivot_index right >>
 
     foreach ~from:left ~until:right ~init:left (fun i store_index ->
-      compare right i >>= fun pivot_lt_i ->
-      if pivot_lt_i
-        then return store_index
-        else swap i store_index >>
-             return (store_index + 1)
+      compare right i >>= function
+        | true  -> return store_index
+        | false -> swap i store_index >>
+                   return (store_index + 1)
     )
     >>= fun store_index ->
 
