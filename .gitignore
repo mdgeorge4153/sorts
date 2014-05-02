@@ -7,5 +7,5 @@
 *.cmx
 *.cmxs
 *.cmxa
-main.native
+*.native
 .depend
