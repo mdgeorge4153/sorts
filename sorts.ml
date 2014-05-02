@@ -90,6 +90,39 @@ end
 
 module HS = HeapSort(AnimMonad)
 open HS
+
+module AnimMonad = struct
+
+  type 'a move = Return  of 'a
+               | Compare of int * int * 'a t
+               | Swap    of int * int * 'a t
+
+  and 'a t = char array -> 'a move * char array
+
+  let apply move arr = match move with
+    | swap 
+
+  let rec bind (m,k) g = match m with
+    | Return x -> g x
+    | _        -> m, fun a -> let a', k' = k a in a', bind k' g
+
+  let rec return x = Return x, fun a -> (a, return x)
+
+  let lt i j = Compare (i,j), fun a -> (a, return (a.(i) < a.(j)))
+
+  let length = Length, fun a -> (a, return (Array.length a))
+
+  let swap i j = Swap (i,j),
+    fun a -> let t = a.(i) in a.(i) <- a.(j); a.(j) <- tmp, Done ((),a))
+
+  let (>>=)    = bind
+  let (>>) f g = f >>= (fun _ -> g)
+
+end
+
+module HS = HeapSort(AnimMonad)
+open HS
+
 *)
 
 (*
