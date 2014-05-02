@@ -5,8 +5,8 @@ let swap a i j =
 
 let shuffle a =
   let n = Array.length a in
-  for i = 0 to n do
-    swap a i (1 + Random.int (n-i-1))
+  for i = 0 to n-1 do
+    swap a i (i + Random.int (n-i))
   done
 
 let map2 f a1 a2 =
