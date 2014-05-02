@@ -12,7 +12,7 @@ module AnimMonad : Sorts.SortMonad = struct
   type 'a t = unit -> 'a
 
   let return x = fun () -> x
-  let bind x f = f (x ())
+  let bind x f () = f (x ()) ()
   let length () = 0
   let compare i j () = true
   let swap i j () = ()
@@ -135,7 +135,7 @@ let lines (a,move) =
   ) a
 
 (** [concat g1 g2] appends the lines in g2 to those in g1 *)
-let concat = Util.map2 (fun l1 l2 -> l1^" "^l2)
+let concat = Util.map2 (fun l1 l2 -> l1^"\t\t"^l2)
 
 let draw sorts =
   let n     = Array.length (fst (List.hd sorts)) in
@@ -155,6 +155,8 @@ let all_done = List.for_all (fun (_,m) -> m = Done ())
 let main n algorithms =
   let arr = Array.init n (fun i -> i) in
   shuffle arr;
+  let algs   = [Done (); Compare (3,4); Swap (2,6)] in
+  let starts = List.map (fun alg -> Array.copy arr, alg) algs in
 
   let rec loop states =
     print_endline clear;
@@ -165,7 +167,7 @@ let main n algorithms =
       loop states
   in
 
-  loop []
+  loop starts
 
 (*
 *)
@@ -174,8 +176,6 @@ module QS = Quicksort.Make(AnimMonad)
 module BS =  Bogosort.Make(AnimMonad)
 
 let sorts = [
-  (*
-  *)
   "heapsort",  HS.sort;
   "quicksort", QS.sort;
   "bogosort",  BS.sort;
@@ -192,7 +192,7 @@ let () =
          ~doc:"n the size of the array to sort (default 10)"
       +> anon (sequence ("algorithm" %: Arg_type.of_alist_exn sorts))
     )
-    (fun n sorts () -> ())
+    (fun n algs () -> main n algs)
   |> Command.run
 
 (*
