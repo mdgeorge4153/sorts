@@ -97,9 +97,10 @@ let () =
       +> flag "-n" (optional_with_default 10 int)
          ~aliases:["--size"]
          ~doc:"n the size of the array to sort (default 10)"
+      +> anon ("algorithm" %: Arg_type.of_alist_exn sorts)
       +> anon (sequence ("algorithm" %: Arg_type.of_alist_exn sorts))
     )
-    (fun n algs () -> main n algs)
+    (fun n alg algs () -> main n (alg::algs))
   |> Command.run
 
 (*
