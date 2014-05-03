@@ -7,10 +7,16 @@ module type SortMonad = sig
   val swap    : int -> int -> unit t
 end
 
-module Sorter = struct
-  type 'a t = char array -> 'a * char array
+module type Sort = sig
+  module Make (M : SortMonad) : sig
+    val sort : unit M.t
+  end
+end
 
-  let bind (f:'a t) (g:'a -> 'b t) (a:char array) =
+module Sorter = struct
+  type 'a t = int array -> 'a * int array
+
+  let bind (f:'a t) (g:'a -> 'b t) (a:int array) =
     let x,a' = f a in
     g x a'
 
@@ -22,12 +28,12 @@ module Sorter = struct
     Printf.printf "comparing %i and %i : %b\n%!" i j (a.(i) < a.(j));
     a.(i) < a.(j), a
 
-  let swap i j (a:char array) =
-    Array.iter (fun x -> print_char x; print_char ' ') a;
-    Printf.printf "\n swapping a.(%i) = %c and a.(%i) = %c\n" i a.(i) j a.(j);
+  let swap i j (a:int array) =
+    Array.iter (fun x -> print_int x; print_char ' ') a;
+    Printf.printf "\n swapping a.(%i) = %i and a.(%i) = %i\n" i a.(i) j a.(j);
     let t = a.(i) in
     a.(i) <- a.(j); a.(j) <- t;
-    Array.iter (fun x -> print_char x; print_char ' ') a;
+    Array.iter (fun x -> print_int x; print_char ' ') a;
     print_endline ""; print_endline "";
     (), a
 
