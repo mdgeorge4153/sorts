@@ -9,14 +9,19 @@ module Make (M : SortMonad) = struct
   let is_sorted () = 
     length >>= fun n ->
     foreach ~from:1 ~until:n ~init:true (fun i acc ->
+      Printf.printf "loop %i" i;
       compare i (i-1) >>| (&&) acc
+    )
+
+  let shuffle () =
+    length >>= fun n ->
+    foreach ~from:0 ~until:(n-1) ~init:() (fun i () ->
+      swap i (i + Random.int (n-i))
     )
 
   let sort =
     length >>= fun n ->
-    dountil ~cond:is_sorted ~init:() (fun () ->
-      swap (Random.int n) (Random.int n)
-    )
+    dountil ~cond:is_sorted ~init:() shuffle
 
 end
 
