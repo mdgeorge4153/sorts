@@ -30,10 +30,10 @@ module Make (M : SortMonad) = struct
 
     foreach ~from:left ~until:right ~init:left (fun i store_index ->
       compare right i >>= function
-        | true  -> print_endline "true"; return store_index
-        | false -> print_endline "false";
-                   swap i store_index >>= fun () ->
-                   return (store_index + 1)
+        | Lt      -> print_endline "true"; return store_index
+        | Gt | Eq -> print_endline "false";
+                     swap i store_index >>= fun () ->
+                     return (store_index + 1)
     )
     >>= fun store_index ->
 

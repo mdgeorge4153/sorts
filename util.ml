@@ -1,4 +1,12 @@
 
+
+type comparison_result = Lt | Eq | Gt
+
+let compare i j =
+  if i < j then Lt
+  else if i = j then Eq
+  else Gt
+
 let swap a i j =
   let t = a.(i) in
   a.(i) <- a.(j); a.(j) <- t

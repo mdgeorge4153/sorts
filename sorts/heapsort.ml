@@ -9,8 +9,9 @@ let sift_down start last =
 
   let ind_max i j =
     if j > last then return i else
-    compare i j >>= fun i_lt_j ->
-    if i_lt_j then return j else return i
+    compare i j >>= function
+      | Gt | Eq -> return i
+      | Lt      -> return j
   in
 
   let root = start in

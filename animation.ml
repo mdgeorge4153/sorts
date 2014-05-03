@@ -94,6 +94,6 @@ let rec bind (f:'a t) (g: 'a -> 'b t) : 'b t = fun arr ->
 
 let return x    _ = Return x
 let length      a = Return (Array.length a)
-let compare i j a = FCompare (i,j,  return (a.(i) < a.(j)))
+let compare i j a = FCompare (i,j,  return (Util.compare a.(i) a.(j)))
 let swap    i j a = FSwap    (i,j, return ())
 

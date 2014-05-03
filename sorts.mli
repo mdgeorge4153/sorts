@@ -3,7 +3,7 @@ module type SortMonad = sig
   include Monad.Monad
 
   val length  : int t
-  val compare : int -> int -> bool t
+  val compare : int -> int -> Util.comparison_result t
   val swap    : int -> int -> unit t
 end
 

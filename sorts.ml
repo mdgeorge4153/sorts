@@ -3,7 +3,7 @@ module type SortMonad = sig
   include Monad.Monad
 
   val length  : int t
-  val compare : int -> int -> bool t
+  val compare : int -> int -> Util.comparison_result t
   val swap    : int -> int -> unit t
 end
 
@@ -27,7 +27,7 @@ module Sorter = struct
   let compare i j a =
     Printf.printf "comparing a.(%i)=%i and a.(%i)=%i\n%!"
                                 i   a.(i)     j   a.(j);
-    a.(i) < a.(j), a
+    Util.compare a.(i) a.(j), a
 
   let swap i j (a:int array) =
     Array.iter (fun x -> print_int x; print_char ' ') a;

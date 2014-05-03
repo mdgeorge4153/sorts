@@ -10,7 +10,9 @@ module Make (M : SortMonad) = struct
     length >>= fun n ->
     foreach ~from:1 ~until:n ~init:true (fun i acc ->
       Printf.printf "loop %i" i;
-      compare i (i-1) >>| (&&) acc
+      compare i (i-1) >>= function
+        | Lt | Eq -> return acc
+        | Gt      -> return false
     )
 
   let shuffle () =

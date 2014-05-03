@@ -71,12 +71,6 @@ let run arr =
 module MU = Monad.Utils (Animation)
 open MU
 
-let noop    = return ()
-let cmpswap = compare 0 1 >>= function
-                | true -> swap 0 1
-                | false -> return ()
-let algs = [noop; cmpswap]
-
 let animSort arr (sort : (module Sorts.Sort)) =
   let module SF = (val sort) in
   let module S  = SF.Make (Animation) in
