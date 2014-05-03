@@ -45,11 +45,28 @@ let draw n sorts =
   print_endline white;
   ()
 
+let all_done = List.for_all (fun cur -> next cur = Done)
+
+let rec animate n states =
+  print_endline clear;
+  draw n states;
+  if not (all_done states) then
+    let _ = read_line () in
+    let states = List.map advance states in
+    animate n states
+
+
+let run arr =
+  List.iter (fun sort ->
+    let (_, result) = sort (Array.copy arr) in
+    Array.iter (Printf.printf "%i ") result;
+    print_newline ();
+    ()
+  )
+
 (******************************************************************************)
 (** {2 Main loop}                                                             *)
 (******************************************************************************)
-
-let all_done = List.for_all (fun cur -> next cur = Done)
 
 module MU = Monad.Utils (Animation)
 open MU
@@ -60,32 +77,29 @@ let cmpswap = compare 0 1 >>= function
                 | false -> return ()
 let algs = [noop; cmpswap]
 
-let main n algorithms =
+let animSort arr (sort : (module Sorts.Sort)) =
+  let module SF = (val sort) in
+  let module S  = SF.Make (Animation) in
+  Animation.run S.sort arr
+
+let runSort (sort : (module Sorts.Sort)) =
+  let module SF = (val sort) in
+  let module S  = SF.Make (Sorter) in
+  S.sort
+
+let main justrun n algorithms =
   let arr = Array.init n (fun i -> i) in
   shuffle arr;
-  let starts  = List.map (fun alg -> run alg arr) algorithms in
+  if not justrun
+  then
+    animate n (List.map (animSort arr) algorithms)
+  else
+    run arr (List.map runSort algorithms)
 
-  let rec loop states =
-    print_endline clear;
-    draw n states;
-    if not (all_done states) then
-      let _ = read_line () in
-      let states = List.map advance states in
-      loop states
-  in
-
-  loop starts
-
-(*
-*)
-module HS =  Heapsort.Make(Animation)
-module QS = Quicksort.Make(Animation)
-module BS =  Bogosort.Make(Animation)
-
-let sorts = [
-  "heapsort",  HS.sort;
-  "quicksort", QS.sort;
-  "bogosort",  BS.sort;
+let sorts : (string * (module Sorts.Sort)) list = [
+  "heapsort",  (module Heapsort);
+  "quicksort", (module Quicksort);
+  "bogosort",  (module Bogosort);
 ]
 
 let () =
@@ -94,13 +108,16 @@ let () =
     ~summary:"Display animations of different sorting algorithms"
     Command.Spec.(
       empty
-      +> flag "-n" (optional_with_default 10 int)
-         ~aliases:["--size"]
+      +> flag "--just-run" (no_arg)
+         ~aliases:["-j"]
+         ~doc:" just run the algorithms and print the result; don't animate"
+      +> flag "--size" (optional_with_default 10 int)
+         ~aliases:["-n"]
          ~doc:"n the size of the array to sort (default 10)"
       +> anon ("algorithm" %: Arg_type.of_alist_exn sorts)
       +> anon (sequence ("algorithm" %: Arg_type.of_alist_exn sorts))
     )
-    (fun n alg algs () -> main n (alg::algs))
+    (fun justrun n alg algs () -> main justrun n (alg::algs))
   |> Command.run
 
 (*
