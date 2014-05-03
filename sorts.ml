@@ -25,7 +25,8 @@ module Sorter = struct
   let length a = Array.length a, a
 
   let compare i j a =
-    Printf.printf "comparing %i and %i : %b\n%!" i j (a.(i) < a.(j));
+    Printf.printf "comparing a.(%i)=%i and a.(%i)=%i\n%!"
+                                i   a.(i)     j   a.(j);
     a.(i) < a.(j), a
 
   let swap i j (a:int array) =
