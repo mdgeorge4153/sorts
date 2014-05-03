@@ -26,17 +26,18 @@ module Make (M : SortMonad) = struct
           return storeIndex
     *)
 
-    swap pivot_index right >>
+    swap pivot_index right >>= fun () ->
 
     foreach ~from:left ~until:right ~init:left (fun i store_index ->
       compare right i >>= function
-        | true  -> return store_index
-        | false -> swap i store_index >>
+        | true  -> print_endline "true"; return store_index
+        | false -> print_endline "false";
+                   swap i store_index >>= fun () ->
                    return (store_index + 1)
     )
     >>= fun store_index ->
 
-    swap right store_index >>
+    swap right store_index >>= fun () ->
     return store_index
 
   let rec quicksort left right =
@@ -57,11 +58,12 @@ module Make (M : SortMonad) = struct
       let pivot_index = left in
       partition left right pivot_index >>= fun pivot_new_index ->
 
-      quicksort left (pivot_new_index - 1) >>
+      quicksort left (pivot_new_index - 1) >>= fun () ->
       quicksort (pivot_new_index + 1) right
 
   let sort =
     length >>= fun n ->
+    (*partition 0 (n - 1) 0 >>| ignore*)
     quicksort 0 (n - 1)
 
 end
