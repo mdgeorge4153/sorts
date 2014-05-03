@@ -10,7 +10,6 @@ module Utils (M : Monad) : sig
   open M
 
   val (>>=)   : 'a t -> ('a -> 'b t) -> 'b t
-  val (>>)    : 'a t -> 'b t -> 'b t
   val (>>|)   : 'a t -> ('a -> 'b) -> 'b t
 
   val foreach : from:int -> until:int -> ?step:int -> init:'a

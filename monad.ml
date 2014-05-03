@@ -10,13 +10,12 @@ module Utils (M : Monad) = struct
   open M
 
   let (>>=) = bind
-  let (>>) m f  = m >>= (fun _ -> f)
 
   let (>>|) m f = m >>= fun x -> return (f x)
 
-  let foreach ~from:start ~until:finish ?step:(step=0) ~init:acc (f : int -> 'a -> 'a t) =
+  let foreach ~from:start ~until:finish ?step:(step=1) ~init:acc (f : int -> 'a -> 'a t) =
     let rec loop i acc =
-      if i >= finish
+      if i = finish
         then return acc
         else (f i acc) >>= loop (i + step)
     in loop start acc
