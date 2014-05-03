@@ -25,7 +25,7 @@ let sift_down start last =
       ind_max biggest (child + 1) >>= fun biggest ->
 
       if biggest <> root then
-        swap root biggest >>
+        swap root biggest >>= fun () ->
         loop biggest
       else
         return ()
@@ -38,7 +38,7 @@ let heapify =
   let rec loop start =
     if start < 0 then return ()
     else
-      sift_down start (count - 1) >>
+      sift_down start (count - 1) >>= fun () ->
       loop (start - 1)
   in loop start
 
@@ -47,9 +47,8 @@ let sort =
   length  >>= fun count ->
 
   foreach ~from:(count - 1) ~until:0 ~step:(-1) ~init:() (fun i () ->
-    Printf.printf "loop %i\n%!" i;
-    swap 0 i >>
-    sift_down 0 i
+    swap 0 i >>= fun () ->
+    sift_down 0 (i-1)
   )
 
 end
