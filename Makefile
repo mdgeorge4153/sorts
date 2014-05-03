@@ -1,6 +1,6 @@
 
 main.native: *.ml *.mli
-	corebuild main.native
+	corebuild -I sorts main.native
 
 clean:
 	git clean -fdX
