@@ -40,7 +40,7 @@ module Make (M : SortMonad) = struct
     swap right store_index >>= fun () ->
     return store_index
 
-  let rec quicksort left right =
+  let rec quicksort getpivot left right =
     (* from wikipedia:
        function quicksort(array, left, right)
        // If the list has 2 or more items
@@ -55,16 +55,30 @@ module Make (M : SortMonad) = struct
            quicksort(array, pivotNewIndex + 1, right) *)
     if left >= right then return ()
     else
-      let pivot_index = left in
+      let pivot_index = getpivot left right in
       partition left right pivot_index >>= fun pivot_new_index ->
 
-      quicksort left (pivot_new_index - 1) >>= fun () ->
-      quicksort (pivot_new_index + 1) right
+      quicksort getpivot left (pivot_new_index - 1) >>= fun () ->
+      quicksort getpivot (pivot_new_index + 1) right
 
   let sort =
     length >>= fun n ->
     (*partition 0 (n - 1) 0 >>| ignore*)
-    quicksort 0 (n - 1)
+    quicksort (fun l r -> l) 0 (n - 1)
 
 end
 
+module Rand = struct
+  module Make (M : SortMonad) = struct
+    module QS = Make(M)
+    open QS
+
+    module MU = Monad.Utils (M)
+    open M
+    open MU
+
+    let sort =
+      length >>= fun n ->
+      quicksort (fun l r -> l + (Random.int (r - l))) 0 (n-1)
+  end
+end

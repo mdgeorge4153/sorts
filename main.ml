@@ -87,9 +87,9 @@ let runSort (sort : (module Sorts.Sort)) =
   let module S  = SF.Make (Sorter) in
   S.sort
 
-let main justrun n algorithms =
+let main sorted justrun n algorithms =
   let arr = Array.init n (fun i -> i) in
-  shuffle arr;
+  if not (sorted) then shuffle arr;
   if not justrun
   then
     animate n (List.map (animSort arr) algorithms)
@@ -99,6 +99,7 @@ let main justrun n algorithms =
 let sorts : (string * (module Sorts.Sort)) list = [
   "heapsort",  (module Heapsort);
   "quicksort", (module Quicksort);
+  "randqsort", (module Quicksort.Rand);
   "bogosort",  (module Bogosort);
 ]
 
@@ -111,13 +112,16 @@ let () =
       +> flag "--just-run" (no_arg)
          ~aliases:["-j"]
          ~doc:" just run the algorithms and print the result; don't animate"
+      +> flag "--sorted" (no_arg)
+         ~aliases:["-s"]
+         ~doc:" start with a presorted array"
       +> flag "--size" (optional_with_default 10 int)
          ~aliases:["-n"]
          ~doc:"n the size of the array to sort (default 10)"
       +> anon ("algorithm" %: Arg_type.of_alist_exn sorts)
       +> anon (sequence ("algorithm" %: Arg_type.of_alist_exn sorts))
     )
-    (fun justrun n alg algs () -> main justrun n (alg::algs))
+    (fun justrun sorted n alg algs () -> main sorted justrun n (alg::algs))
   |> Command.run
 
 (*
