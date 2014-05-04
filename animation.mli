@@ -10,4 +10,5 @@ val retreat : cursor -> cursor
 val current : cursor -> int array
 val next    : cursor -> move
 val prev    : cursor -> move
+val message : cursor -> string
 

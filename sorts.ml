@@ -5,6 +5,8 @@ module type SortMonad = sig
   val length  : int t
   val compare : int -> int -> Util.comparison_result t
   val swap    : int -> int -> unit t
+
+  val printf : ('a, unit, string, unit t) format4 -> 'a
 end
 
 module type Sort = sig
@@ -37,6 +39,9 @@ module Sorter = struct
     Array.iter (fun x -> print_int x; print_char ' ') a;
     print_endline ""; print_endline "";
     (), a
+
+  let printf f =
+    Printf.ksprintf (fun s -> print_string s; return ()) f
 
 end
 

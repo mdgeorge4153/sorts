@@ -5,6 +5,9 @@ module type SortMonad = sig
   val length  : int t
   val compare : int -> int -> Util.comparison_result t
   val swap    : int -> int -> unit t
+
+  val printf : ('a, unit, string, unit t) format4 -> 'a
+
 end
 
 module type Sort = sig
