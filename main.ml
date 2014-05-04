@@ -109,6 +109,7 @@ let sorts : (string * (module Sorts.Sort)) list = [
   "randqsort", (module Quicksort.Rand);
   "bogosort",  (module Bogosort);
   "insertion", (module Insertion);
+  "cyclesort", (module Cyclesort);
 ]
 
 let () =
