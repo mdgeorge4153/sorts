@@ -19,12 +19,21 @@ let line n s i =
   String.blit s 0 result i (String.length s);
   result
 
+(** returna a string of length n with s centered within it. *)
+let center s rlen =
+  let slen   = String.length s in
+  let result = String.make rlen ' ' in
+  let offset = max 0 (rlen - slen) / 2 in
+  let len    = min rlen slen in
+  String.blit s 0 result offset len;
+  result
+
 (** return a list of lines *)
 let lines cursor =
   let move   = Animation.next    cursor in
   let a      = Animation.current cursor in
   let length = Array.length a in
-  Array.mapi (fun k x ->
+  let result = Array.mapi (fun k x ->
     let mark = match move with
       | Compare (i,j) when k = i || k = j -> green^"?"
       | Swap    (i,j) when k = i || k = j -> red^"O"
@@ -32,16 +41,18 @@ let lines cursor =
       | _                                 -> white^"#"
     in
     line length mark x
-  ) a
+  ) a in
+
+  (Array.to_list result)@[white^(center (message cursor) length)]
 
 (** [concat g1 g2] appends the lines in g2 to those in g1 *)
-let concat = Util.map2 (fun l1 l2 -> l1^"\t\t"^l2)
+let concat = List.map2 (fun l1 l2 -> l1^"         "^l2)
 
 let draw n sorts =
   let grids = List.map lines sorts in
-  let empty = Array.create n "" in
+  let empty = Array.to_list (Array.create (n+1) "") in
   let lines = List.fold_left concat empty grids in
-  Array.iter print_endline lines;
+  List.iter print_endline lines;
   print_endline white;
   ()
 
