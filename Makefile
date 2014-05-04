@@ -1,5 +1,5 @@
 
-main.native: *.ml *.mli
+main.native: *.ml *.mli sorts/*.ml
 	corebuild -I sorts main.native
 
 clean:
