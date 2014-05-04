@@ -28,7 +28,7 @@ type cursor = {
 
 (** Return the next (move, status), and new thunk by forcing the given thunk *)
 let rec pop (arr,msg) thunk = match thunk arr with
-  | Return _          -> (Done, (arr,msg)), thunk
+  | Return _          -> (Done, (arr,"done")), thunk
   | FSwap    (i,j,t') -> let arr' = Array.copy arr in
                          Util.swap arr' i j;
                          (Swap (i,j), (arr',msg)), t'
