@@ -11,8 +11,8 @@ module Make (M : SortMonad) = struct
     length >>= fun n ->
     foreach ~from:1 ~until:n ~init:true (fun i acc ->
       compare i (i-1) >>= function
-        | Lt | Eq -> return acc
-        | Gt      -> return false
+        | Gt | Eq -> return acc
+        | Lt      -> return false
     )
 
   let shuffle =
