@@ -29,7 +29,7 @@ let center s rlen =
   result
 
 (** return a list of lines *)
-let lines cursor =
+let lines (cursor,name) =
   let move   = Animation.next    cursor in
   let a      = Animation.current cursor in
   let length = Array.length a in
@@ -43,27 +43,27 @@ let lines cursor =
     line length mark x
   ) a in
 
-  (Array.to_list result)@[white^(center (message cursor) length)]
+  (center name length)::(Array.to_list result)@[white^(center (message cursor) length)]
 
 (** [concat g1 g2] appends the lines in g2 to those in g1 *)
 let concat = List.map2 (fun l1 l2 -> l1^"         "^l2)
 
 let draw n sorts =
   let grids = List.map lines sorts in
-  let empty = Array.to_list (Array.create (n+1) "") in
+  let empty = Array.to_list (Array.create (n+2) "") in
   let lines = List.fold_left concat empty grids in
   List.iter print_endline lines;
   print_endline white;
   ()
 
-let all_done = List.for_all (fun cur -> prev cur = Done)
+let all_done = List.for_all (fun (cur,_) -> prev cur = Done)
 
 let rec animate n states =
   print_endline clear;
   draw n states;
   if not (all_done states) then
     let _ = read_line () in
-    let states = List.map advance states in
+    let states = List.map (fun (cur,name) -> advance cur, name) states in
     animate n states
 
 
@@ -85,7 +85,7 @@ open MU
 let animSort arr (sort : (module Sorts.Sort)) =
   let module SF = (val sort) in
   let module S  = SF.Make (Animation) in
-  Animation.run S.sort arr
+  (Animation.run S.sort arr, SF.name)
 
 let runSort (sort : (module Sorts.Sort)) =
   let module SF = (val sort) in

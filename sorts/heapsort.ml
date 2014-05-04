@@ -1,5 +1,7 @@
 open Sorts
 
+let name = "heapsort"
+
 module Make (M : SortMonad) = struct
 module MU = Monad.Utils(M)
 open M

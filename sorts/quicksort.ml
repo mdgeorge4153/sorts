@@ -1,5 +1,7 @@
 open Sorts
 
+let name = "quicksort"
+
 module Make (M : SortMonad) = struct
   module MU = Monad.Utils(M)
   open M
@@ -70,6 +72,8 @@ module Make (M : SortMonad) = struct
 end
 
 module Rand = struct
+  let name = "randqsort"
+
   module Make (M : SortMonad) = struct
     module QS = Make(M)
     open QS

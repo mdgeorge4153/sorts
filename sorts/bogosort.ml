@@ -1,5 +1,7 @@
 open Sorts
 
+let name = "bogosort"
+
 module Make (M : SortMonad) = struct
 
   module MU = Monad.Utils(M)

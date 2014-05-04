@@ -11,6 +11,8 @@ module type SortMonad = sig
 end
 
 module type Sort = sig
+  val name    : string
+
   module Make (M : SortMonad) : sig
     val sort : unit M.t
   end

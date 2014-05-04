@@ -1,4 +1,6 @@
 
+let name = "cyclesort"
+
 module Make (M : SortMonad) = struct
 
 module MU = Monad.Utils (M)
