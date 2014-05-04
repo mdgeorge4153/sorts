@@ -58,13 +58,14 @@ let draw n sorts =
 
 let all_done = List.for_all (fun (cur,_) -> prev cur = Done)
 
-let rec animate n states =
+let rec animate n pause states =
   print_endline clear;
   draw n states;
-  if not (all_done states) then
-    let _ = read_line () in
+  if not (all_done states) then begin
+    pause ();
     let states = List.map (fun (cur,name) -> advance cur, name) states in
-    animate n states
+    animate n pause states
+  end
 
 
 let run arr =
@@ -92,12 +93,13 @@ let runSort (sort : (module Sorts.Sort)) =
   let module S  = SF.Make (Sorter) in
   S.sort
 
-let main sorted justrun n algorithms =
+let main sorted justrun n step algorithms =
+  let pause () = if step then ignore (read_line ()) else Thread.delay 0.1 in
   let arr = Array.init n (fun i -> i) in
   if not (sorted) then shuffle arr;
   if not justrun
   then
-    animate n (List.map (animSort arr) algorithms)
+    animate n pause (List.map (animSort arr) algorithms)
   else
     run arr (List.map runSort algorithms)
 
@@ -124,10 +126,12 @@ let () =
       +> flag "--size" (optional_with_default 10 int)
          ~aliases:["-n"]
          ~doc:"n the size of the array to sort (default 10)"
+      +> flag "--step" (no_arg)
+         ~doc:" pause for input between each step"
       +> anon ("algorithm" %: Arg_type.of_alist_exn sorts)
       +> anon (sequence ("algorithm" %: Arg_type.of_alist_exn sorts))
     )
-    (fun justrun sorted n alg algs () -> main sorted justrun n (alg::algs))
+    (fun justrun sorted n step alg algs () -> main sorted justrun n step (alg::algs))
   |> Command.run
 
 (*
