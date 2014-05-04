@@ -56,7 +56,7 @@ let draw n sorts =
   print_endline white;
   ()
 
-let all_done = List.for_all (fun cur -> next cur = Done)
+let all_done = List.for_all (fun cur -> prev cur = Done)
 
 let rec animate n states =
   print_endline clear;
