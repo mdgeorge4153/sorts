@@ -6,16 +6,17 @@ module Make (M : SortMonad) = struct
   open M
   open MU
 
-  let is_sorted () = 
+  let is_sorted _ = 
+    printf "checking" >>= fun () ->
     length >>= fun n ->
     foreach ~from:1 ~until:n ~init:true (fun i acc ->
-      Printf.printf "loop %i" i;
       compare i (i-1) >>= function
         | Lt | Eq -> return acc
         | Gt      -> return false
     )
 
-  let shuffle () =
+  let shuffle =
+    printf "shuffling" >>= fun () ->
     length >>= fun n ->
     foreach ~from:0 ~until:(n-1) ~init:() (fun i () ->
       swap i (i + Random.int (n-i))
@@ -23,7 +24,11 @@ module Make (M : SortMonad) = struct
 
   let sort =
     length >>= fun n ->
-    dountil ~cond:is_sorted ~init:() shuffle
+    dountil ~cond:is_sorted ~init:1 (fun n ->
+      printf "iteration %i" n >>= fun () ->
+      shuffle >>= fun () ->
+      return (n + 1)
+    ) >>| ignore
 
 end
 

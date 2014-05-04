@@ -26,7 +26,8 @@ module Make (M : SortMonad) = struct
           return storeIndex
     *)
 
-    swap pivot_index right >>= fun () ->
+    printf "partition %i-%i" left right >>= fun () ->
+    swap pivot_index right              >>= fun () ->
 
     foreach ~from:left ~until:right ~init:left (fun i store_index ->
       compare right i >>= function
@@ -64,7 +65,7 @@ module Make (M : SortMonad) = struct
   let sort =
     length >>= fun n ->
     (*partition 0 (n - 1) 0 >>| ignore*)
-    quicksort (fun l r -> l) 0 (n - 1)
+    quicksort (fun l _ -> l) 0 (n - 1)
 
 end
 

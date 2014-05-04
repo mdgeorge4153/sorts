@@ -33,7 +33,8 @@ let sift_down start last =
   in loop root
 
 let heapify =
-  length >>= fun count ->
+  printf "heapify" >>= fun () ->
+  length           >>= fun count ->
   let start = (count - 2) / 2 in
 
   let rec loop start =
@@ -48,7 +49,9 @@ let sort =
   length  >>= fun count ->
 
   foreach ~from:(count - 1) ~until:0 ~step:(-1) ~init:() (fun i () ->
+    printf "popping %i" i >>= fun () ->
     swap 0 i >>= fun () ->
+    printf "sift down %i" i >>= fun () ->
     sift_down 0 (i-1)
   )
 
