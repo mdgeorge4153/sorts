@@ -32,16 +32,15 @@ module Sorter = struct
     Util.compare a.(i) a.(j), a
 
   let swap i j (a:int array) =
-    Array.iter (fun x -> print_int x; print_char ' ') a;
-    Printf.printf "\n swapping a.(%i) = %i and a.(%i) = %i\n" i a.(i) j a.(j);
+    Printf.printf "swapping a.(%i) = %i and a.(%i) = %i\n\t" i a.(i) j a.(j);
     let t = a.(i) in
     a.(i) <- a.(j); a.(j) <- t;
     Array.iter (fun x -> print_int x; print_char ' ') a;
-    print_endline ""; print_endline "";
+    print_newline ();
     (), a
 
   let printf f =
-    Printf.ksprintf (fun s -> print_string s; return ()) f
+    Printf.ksprintf (fun s -> Printf.printf "\n*** %s ***\n\n" s; return ()) f
 
 end
 
