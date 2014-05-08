@@ -100,6 +100,7 @@ let sorts : (string * (module Sorts.Sort)) list = [
   "bogosort",  (module Bogosort);
   "insertion", (module Insertion);
   "cyclesort", (module Cyclesort);
+  "mergesort", (module Mergesort);
 ]
 
 let list_algs () =
