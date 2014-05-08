@@ -10,6 +10,20 @@ module type SortMonad = sig
 
 end
 
+module Utils (M : SortMonad) : sig
+
+  (** utilities for working with the Sort Monad *)
+
+  (** the range of values A[i,j) *)
+  type range = int * int
+
+  val in_range_and_lt : range -> int -> (int -> bool M.t)
+  val in_range_and_gt : range -> int -> (int -> bool M.t)
+
+  val reverse : range -> unit M.t
+
+end
+
 module type Sort = sig
   val name    : string
 

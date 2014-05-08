@@ -17,6 +17,31 @@ module type Sort = sig
   end
 end
 
+module Utils (M : SortMonad) = struct
+  open Util
+
+  module MU = Monad.Utils(M)
+  open M
+  open MU
+
+  type range = int * int
+
+  let in_range_and_test cmp (s,f) p = fun k ->
+    if k < s || k >= f then return false
+    else compare k p >>| cmp
+  
+  let in_range_and_lt range p = in_range_and_test ((=) Lt) range p
+  let in_range_and_gt range p = in_range_and_test ((=) Gt) range p
+
+  (** reverse the sublist A[i,j) *)
+  let reverse (i,j) =
+    let n = j - i in
+    foreach ~from:0 ~until:(n/2) ~init:() (fun k () ->
+      swap (i+k) (j-k-1)
+    )
+
+end
+
 module Sorter = struct
   type 'a t = int array -> 'a * int array
 
