@@ -93,16 +93,6 @@ let runSort (sort : (module Sorts.Sort)) =
   let module S  = SF.Make (Sorter) in
   S.sort
 
-let main sorted justrun n step algorithms =
-  let pause () = if step then ignore (read_line ()) else Thread.delay 0.1 in
-  let arr = Array.init n (fun i -> i) in
-  if not (sorted) then shuffle arr;
-  if not justrun
-  then
-    animate n pause (List.map (animSort arr) algorithms)
-  else
-    run arr (List.map runSort algorithms)
-
 let sorts : (string * (module Sorts.Sort)) list = [
   "heapsort",  (module Heapsort);
   "quicksort", (module Quicksort);
@@ -112,10 +102,34 @@ let sorts : (string * (module Sorts.Sort)) list = [
   "cyclesort", (module Cyclesort);
 ]
 
+let list_algs () =
+  print_endline "available algorithms:";
+  List.iter (fun (name,_) -> print_string "\t"; print_endline name) sorts
+
+let main sorted justrun n step algorithms =
+
+  if algorithms = [] then begin
+    print_newline ();
+    print_endline "please input at least one algorithm to run";
+    print_newline ();
+    list_algs ();
+    exit 1
+  end
+  else
+  
+  let pause () = if step then ignore (read_line ()) else Thread.delay 0.1 in
+  let arr = Array.init n (fun i -> i) in
+  if not (sorted) then shuffle arr;
+  if not justrun
+  then
+    animate n pause (List.map (animSort arr) algorithms)
+  else
+    run arr (List.map runSort algorithms)
+
 let () =
   let open Core.Std in
   Command.basic
-    ~summary:"Display animations of different sorting algorithms"
+    ~summary:"\nDisplay animations of different sorting algorithms"
     Command.Spec.(
       empty
       +> flag "--just-run" (no_arg)
@@ -129,10 +143,9 @@ let () =
          ~doc:"n the size of the array to sort (default 10)"
       +> flag "--step" (no_arg)
          ~doc:" pause for input between each step"
-      +> anon ("algorithm" %: Arg_type.of_alist_exn sorts)
       +> anon (sequence ("algorithm" %: Arg_type.of_alist_exn sorts))
     )
-    (fun justrun sorted n step alg algs () -> main sorted justrun n step (alg::algs))
+    (fun justrun sorted n step algs () -> main sorted justrun n step algs)
   |> Command.run
 
 (*
