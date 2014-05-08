@@ -24,7 +24,7 @@ want to run.  For example:
 ./main.native insertion quicksort heapsort
 
 Running main.native with no arguments will cause the available sorting
-algorithms to be listed.  Running with -h will show additional options
+algorithms to be listed.  Running with -help will show additional options
 
 
 ### Tab completion
