@@ -31,13 +31,14 @@ module Blocks = struct
 
   let length (_,_,n) = M.return n
 
-  let translate i (o,s,_) = o + i*s
+  let first i (o,s,_) = o + i*s
+  let last  i (o,s,_) = o + i*s + s - 1
 
   let compare i j params =
-    compare (translate i params) (translate j params)
+    compare (last i params) (last j params)
   
   let swap i j ((_,s,_) as params) =
-    swap_n (translate i params) (translate j params) s
+    swap_n (first i params) (first j params) s
 
   let printf f = Printf.ksprintf (fun _ -> return ()) f
 
@@ -46,9 +47,7 @@ end
 module BlockSort = Insertion.Make(Blocks)
 
 let sort_blocks start finish block_size =
-  let offset     = start + block_size - 1 in
-  let num_blocks = (finish - start) / block_size in
-  BlockSort.sort (offset, block_size, num_blocks)
+  BlockSort.sort (start, block_size, (finish - start)/block_size)
 
 (******************************************************************************)
 (* merging when sublists are too small (see section 3 of Huang88)             *)
@@ -269,7 +268,7 @@ let merge start mid finish =
     (** Sort blocks by their tails *)
     sort_blocks bufr el s    >>= fun () ->
 
-
+    
     (* TODO *) return ()
   end
 
