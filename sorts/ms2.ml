@@ -1,5 +1,5 @@
 (** This is an implementation of in-place merge sort based Larry Liu Xinyu's
-    algorithm described here:
+     algorithm described here:
 
        https://sites.google.com/site/algoxy/dcsort/dcsort-en.pdf
 
@@ -12,49 +12,97 @@
 let name = "mergesort"
 
 
-module Make (M : SortMonad) = struct
+module Make (M : Sorts.SortMonad) = struct
 
-module MU = Monad.Utils (M)
+module MU  = Monad.Utils (M)
+module SMU = Sorts.Utils (M)
 open M
 open MU
+open SMU
 
 
-(** merges the sorted ranges [[al,au)] and [[bl,bu)] into the work area,
-    swapping the work area's contents into the [a] and [b] ranges.  Requires
-    that
-      [wn = an + bn] where [wn = wu - wl], [an = au - al], and [bn = bu - bl] *)
-let merge_with_work_area ~area:(wl,wu) (al,au) (bl,bu) =
+let floor n k = n / k
+let ceil  n k = n / k + n mod k
 
-  assert (wu - wl) = (au - al) + (bu - bl);
+(** precondition:
+      [- sorted region A -]  ...  [- buffer with |A| elts -][- sorted region B -]
+    al^                  ar^  bufl^                       bl^                  br^
 
-  let some_left (_,al,bl) = al < au || bl < bu in
-  while ~cond:some_left ~init:(wl,al,bl) (fun (wl,al,bl) ->
-    if      al >= au then (swap bl wl >>= fun () -> return (wl+1, al, bl+1))
-    else if bl >= bu then (swap al wl >>= fun () -> return (wl+1, al+1, bl))
-    else compare al bl >>= function
-      | Lt | Eq -> swap al wl >>= fun () -> return (wl+1,al+1,bl)
-      | Gt      -> swap bl wl >>= fun () -> return (wl+1,al,bl+1)
-  )
+    postcondition:
 
-(** *)
-let sort_with_work_area (wl, wu) (l,u) =
-  if u - l > 1 then begin
-    let m = l + (u - 1)/2 in
-  end
-  else dowhile ~cond:
+      [- buffer elements -]  ...  [- merged elements of regions A and B -]
+    al^                  ar^  bufl^                                     br^
     
+    runs in time O(|A| + |B|) *)
+let rec merge_with_work_area al ar bufl bl br =
+  printf "merge [%i,%i) [%i,%i,%i)" al ar bufl bl br >>= fun () ->
+  assert (al <= ar && ar <= bufl && bufl <= bl && bl <= br);
+  assert (bl - bufl = ar - al);
 
-(** *)
-and sort_range (l, u) =
+  if al = ar then
+    (* A and buffer are empty; we're done *)
+    return ()
+  else if bl = br then
+    (* B is empty - just move a into buffer *)
+    swap_n al bufl (ar - al)
+  else
+    (* A, B, and buf all nonempty. *)
+    compare al bl >>= function
+      | Lt | Eq -> swap al bufl >>= fun () ->
+                   merge_with_work_area (al+1) ar (bufl+1) bl br
+      | Gt      -> swap bl bufl >>= fun () ->
+                   merge_with_work_area al ar (bufl + 1) (bl + 1) br
 
-  (* example:
-       0  1  2  3  4  5  6  7
-       G  B  C  A  D  J  R
-       [--a--]  [----b---]
-      l^       m^ w^       u^ *)
 
-  let m = l + (u - l)/2 in
-  let w = l + (u - m) in
+let rec bubble_up i n =
+  printf "bubble_up %i %i" i n >>= fun () ->
+  if i+1 >= n then return ()
+  else compare i (i+1) >>= function
+    | Lt | Eq -> return ()
+    | Gt      -> swap i (i+1) >>= fun () ->
+                 bubble_up (i+1) n
+
+(** precondition:
+        [-- k elements --][-- n sorted elements --]
+    left^              mid^                   right^
+
+    postcondition:
+        [-- ⌈k/2⌉ elements --][-- n + ⌊k/2⌋ sorted elements --]
+    left^               result^                           right^ *)
+
+let rec sort_and_merge left mid right =
+  let k = mid  - left in
+  let l = left + k mod 2 in
+  let r = l    + k / 2   in
+
+  (*    x  A  A  A  A  W  W  W  W  B  B  B  B  B  B  B  B
+    left^ l^          r^        mid^                  right^  *)
+  sort_range (l,r)                     >>= fun () ->
+  merge_with_work_area l r r mid right >>= fun () ->
+  return r
+
+and sort_range (l, r) =
+  printf "sort [%i,%i)" l r >>= fun () ->
+
+  let n   = r - l         in
+  let mid = l + floor n 2 in
+
+  if n <= 1 then return ()
+  else begin
+    sort_range (mid, r) >>= fun () ->
+
+    (* invariant: [sorted_left, r) is sorted *)
+    let rec loop sorted_left = match sorted_left - l with
+      | 0 -> return ()
+      | 1 -> bubble_up l r
+      | _ -> sort_and_merge l sorted_left r >>= loop
+
+    in loop mid
+  end
+
+let sort =
+  length >>= fun n ->
+  sort_range (0,n)
 
 end
 
