@@ -20,6 +20,7 @@ module Utils (M : SortMonad) : sig
   val in_range_and_lt : range -> int -> (int -> bool M.t)
   val in_range_and_gt : range -> int -> (int -> bool M.t)
 
+  val swap_n  : int -> int -> int -> unit M.t
   val reverse : range -> unit M.t
 
 end

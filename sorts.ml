@@ -33,6 +33,13 @@ module Utils (M : SortMonad) = struct
   let in_range_and_lt range p = in_range_and_test ((=) Lt) range p
   let in_range_and_gt range p = in_range_and_test ((=) Gt) range p
 
+  (** [swap a b n] swaps two blocks of [n] elements, starting from positions
+      [a] and [b].  ranges should not overlap. *)
+  let swap_n a b n =
+    foreach ~from:0 ~until:n ~init:() (fun i () ->
+      swap (a + i) (b + i)
+    )
+
   (** reverse the sublist A[i,j) *)
   let reverse (i,j) =
     let n = j - i in
