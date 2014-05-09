@@ -14,13 +14,42 @@ open SMU
 
 let root n = int_of_float (sqrt (float_of_int n))
 
-let swap_n a b n =
-  foreach ~from:0 ~until:n ~init:() (fun i () ->
-    swap (a + i) (b + i)
-  )
+(******************************************************************************)
+(* sorting small subarrays                                                    *)
+(******************************************************************************)
+
+module Blocks = struct
+  (** offset, block_size, num_blocks *)
+  type params = int * int * int
+
+  type 'a t = params -> 'a M.t
+
+  let bind   x f = fun params -> x params >>= fun a -> f a params
+  let return x _ = return x
+
+  let length (_,_,n) = M.return n
+
+  let translate i (o,s,_) = o + i*s
+
+  let compare i j params =
+    compare (translate i params) (translate j params)
+  
+  let swap i j ((_,s,_) as params) =
+    swap_n (translate i params) (translate j params) s
+
+  let printf f = Printf.ksprintf (fun _ -> return ()) f
+
+end
+
+module BlockSort = Insertion.Make(Blocks)
+
+let sort_blocks start finish block_size =
+  let offset     = start + block_size - 1 in
+  let num_blocks = (finish - start) / block_size in
+  BlockSort.sort (offset, block_size, num_blocks)
 
 (******************************************************************************)
-(* merging when sublists are too small                                        *)
+(* merging when sublists are too small (see section 3 of Huang88)             *)
 (******************************************************************************)
 
 (** merges the sorted sublists [[start,mid)] and [[mid,finish)].  If $n$ is the
@@ -80,17 +109,17 @@ let rec block_merge_forward start mid finish =
   block_merge_forward new_start new_mid finish
   end
 
-let block_merge_backward = block_merge_forward (* TODO *)
+(** Like block_merge_forward, except runs in time O(n+m^2) instead of O(m+n^2) *)
+let block_merge_backward start mid finish =
+  reverse (start, mid   ) >>= fun () ->
+  reverse (mid,   finish) >>= fun () ->
+  reverse (start, finish) >>= fun () ->
+
+  let mid = finish - (mid - start) in
+  block_merge_forward start mid finish
 
 (******************************************************************************)
-(* using a buffer to merge                                                    *)
-(******************************************************************************)
-
-let merge_with_buffer ~buffer:(bufstart,bufend) (s1,f1) (s2,f2) =
-  failwith "TODO"
-
-(******************************************************************************)
-(* establishing the initial blocks (section 3 of Huang88                      *)
+(* establishing the initial blocks (section 3 of Huang88)                     *)
 (******************************************************************************)
 
 (** Given the input list [l] of length [n] divided up as follows:
@@ -117,7 +146,6 @@ let prepare start mid finish =
   let n  = finish - start in
   let s  = root n         in
   let t1 = (mid - start)  mod s in
-  let t2 = (finish - mid) mod s in
   
   (* find s largest elements *)
   foreach ~from:0 ~until:s ~init:(mid,finish) (fun _ (l,r) ->
@@ -128,17 +156,16 @@ let prepare start mid finish =
   let ar, br = mid, finish in
   
   let cl,cr = mid - s,     al in
-  let dl,dr = finish - t2, bl in
-  
+  let dl,dr = mid + s*((bl-mid)/s), bl in
+
   (* example:
        [t1 elts][s elts] ... [s elts][s elts][s elts] ... [s elts][ t2 elts ]
        [----------- sublist 1 --------------][----------- sublist 2 --------]
                                      [ C ][A]                     [ D  ][ B ]
-  start^                                  mid^                         finish^
-  *)
+  start^                                  mid^                         finish^ *)
   
   (* swap B and C to move s largest elements into left half *)
-  swap_n bl cl (finish - bl) >>= fun () ->
+  swap_n bl cl (br - bl) >>= fun () ->
   let bufl, bufr = cl, ar in
   let cl,   cr   = bl, br in
   
@@ -149,10 +176,10 @@ let prepare start mid finish =
   *)
   
   (* note: A and B had s largest elements, so [buffer] has largest elements *)
-  
-  merge_with_buffer ~buffer:(bufl,bufr) (dl,cr) (cl,cr) >>= fun () ->
+
+  sort_blocks dl cr 1 >>= fun () -> (* TODO: merge with buffer instead of sort *)
   let el,er = dl,cr in
-  
+
   (* example:
        [t1 elts][s elts][s elts][s elts][s elts] ... [s elts][t2 elts]
                                 [buffer]                     [   E   ]
@@ -171,21 +198,22 @@ let prepare start mid finish =
     start^                             mid^                         finish^ *)
   
     let hl,hr = mid - t1, mid in
-    swap_n fl hl t1 >>= fun () ->
-    merge_with_buffer ~buffer:(fl,fr) (hl,hr) (gl,gr) >>= fun () ->
-    let il,ir = mid, mid + s  in
+
+    swap_n fl hl t1     >>= fun () ->
+    sort_blocks hl gr 1 >>= fun () -> (* TODO: merge with buffer instead of sort *)
+    swap_n fl hl t1     >>= fun () ->
+
+    let hl, hr = start, start + t1 in
+    let il,ir  = gl,gr in
   
     (* example:
-         [t1 elts][s elts][s elts][s elts  ][ s elts ][s elts][t2 elts]
-         [  fer  ]                [buf][ H ][   I    ]        [   E   ]
-    start^                               mid^                    finish^ *)
+         [t1 elts][s elts][s elts][s elts][ s elts ][s elts][t2 elts]
+         [   H   ]                [buffer][   I    ]        [   E   ]
+    start^                             mid^                    finish^ *)
   
-    (* Note: F and G contain smallest elements, so H (which is start of merge
+    (* Note: F and G contained smallest elements, so H (which is start of merge
        of F and G) has smallest elements *)
   
-  
-    swap_n start hl t1 >>= fun () ->
-    let hl, hr = start, start + t1 in
     return ((hl, hr), (bufl,bufr))
   end
 
@@ -213,7 +241,7 @@ let prepare start mid finish =
 
 
 (******************************************************************************)
-(* main merging algorithm                                                     *)
+(* main merging algorithm (section 2 of Huang88)                              *)
 (******************************************************************************)
 
 let rec merge start mid finish =
@@ -227,7 +255,14 @@ let rec merge start mid finish =
   else if n2 < s then
     block_merge_backward start mid finish
   else begin
-    prepare start mid finish >>= fun (_,(bufl,bufr),(el,er)) ->
+    prepare start mid finish >>= fun ((hl,hr),(bufl,bufr),(el,er)) ->
+    printf "H: [%i,%i) buf:[%i,%i) E:[%i,%i) s:%i" hl hr bufl bufr el er s >>= fun () ->
+
+    (** Sort blocks by their tails *)
+    sort_blocks bufr el s    >>= fun () ->
+
+
+    (* TODO *) return ()
   end
 
 (******************************************************************************)
