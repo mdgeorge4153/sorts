@@ -14,6 +14,8 @@ open SMU
 
 let root n = int_of_float (sqrt (float_of_int n))
 
+let squelch_unused_warning _ = ()
+
 (******************************************************************************)
 (* sorting small subarrays                                                    *)
 (******************************************************************************)
@@ -157,6 +159,7 @@ let prepare start mid finish =
   
   let cl,cr = mid - s,     al in
   let dl,dr = mid + s*((bl-mid)/s), bl in
+  squelch_unused_warning (cr,dr);
 
   (* example:
        [t1 elts][s elts] ... [s elts][s elts][s elts] ... [s elts][ t2 elts ]
@@ -168,6 +171,7 @@ let prepare start mid finish =
   swap_n bl cl (br - bl) >>= fun () ->
   let bufl, bufr = cl, ar in
   let cl,   cr   = bl, br in
+  squelch_unused_warning cl;
   
   (* example:
        [t1 elts][s elts][s elts][s elts][s elts] ... [s elts][t2  elts]
@@ -191,6 +195,7 @@ let prepare start mid finish =
   begin if t1 < s then begin
     let fl, fr = start, start + t1 in
     let gl, gr = mid,   mid + s    in
+    squelch_unused_warning fr;
   
     (* example:
          [t1 elts][s elts][s elts][s elts][s elts] ... [s elts][ t2 elts ]
@@ -198,6 +203,7 @@ let prepare start mid finish =
     start^                             mid^                         finish^ *)
   
     let hl,hr = mid - t1, mid in
+    squelch_unused_warning hr;
 
     swap_n fl hl t1     >>= fun () ->
     sort_blocks hl gr 1 >>= fun () -> (* TODO: merge with buffer instead of sort *)
@@ -205,6 +211,7 @@ let prepare start mid finish =
 
     let hl, hr = start, start + t1 in
     let il,ir  = gl,gr in
+    squelch_unused_warning (il,ir);
   
     (* example:
          [t1 elts][s elts][s elts][s elts][ s elts ][s elts][t2 elts]
@@ -231,6 +238,7 @@ let prepare start mid finish =
   
   swap_n jl bufl s >>= fun () ->
   let bufl, bufr, jl, jr = jl, jr, bufl, bufr in
+  squelch_unused_warning (jl,jr);
 
   (* example:
        [t1 elts][s elts][s elts][s elts  ][ s elts ][s elts][t2 elts]
@@ -244,7 +252,7 @@ let prepare start mid finish =
 (* main merging algorithm (section 2 of Huang88)                              *)
 (******************************************************************************)
 
-let rec merge start mid finish =
+let merge start mid finish =
   let n  = finish - start in
   let n1 = mid - start in
   let n2 = finish - mid in
