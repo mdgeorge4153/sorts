@@ -180,7 +180,7 @@ let prepare start mid finish =
   
   (* note: A and B had s largest elements, so [buffer] has largest elements *)
 
-  sort_blocks dl cr 1 >>= fun () -> (* TODO: merge with buffer instead of sort *)
+  sort_blocks dl cr 1 >>= fun () ->
   let el,er = dl,cr in
 
   (* example:
@@ -205,7 +205,7 @@ let prepare start mid finish =
     squelch_unused_warning hr;
 
     swap_n fl hl t1     >>= fun () ->
-    sort_blocks hl gr 1 >>= fun () -> (* TODO: merge with buffer instead of sort *)
+    sort_blocks hl gr 1 >>= fun () ->
     swap_n fl hl t1     >>= fun () ->
 
     let hl, hr = start, start + t1 in
@@ -268,7 +268,34 @@ let merge start mid finish =
     (** Sort blocks by their tails *)
     sort_blocks bufr el s    >>= fun () ->
 
-    
+    (* example:
+      H2 H3 I1 I2 J1 A1 A2 A3 B4 B5 B1 B2 B3 D1 D2 C1 C2 E3 G2 G3 E1 E2 F1 G1 H1
+      [    buffer  ] [   block 2  ] [   block 3  ] [  block 4   ] [   block 5  ]
+
+    note: each block is sorted and blocks are sorted by their tails
+    *)
+
+    (** Find first two series.  Series 1 goes from buffer through as many blocks
+        as are sorted.  Series 2 is the next block after that. *)
+    let s1l = bufr in
+    dowhile ~init:(s1l+s) ~cond:(fun s2l -> 
+      if s2l >= el then return false
+                   else (compare (s2l-1) s2l >>| ((<>) Gt))
+    ) (fun s2l -> return (s2l + s)) >>= fun s2l ->
+
+    let s1r = s2l in
+    let s2r = s2l + s in
+
+    (* example
+      H2 H3 I1 I2 J1 A1 A2 A3 B4 B5 B1 B2 B3 D1 D2 C1 C2 E3 G2 G3 E1 E2 F1 G1 H1
+      [    buffer  ] [   block 2  ] [   block 3  ] [  block 4   ] [   block 5  ]
+                     [      series 1             ] [  series 2  ]
+    *)
+
+    (** TODO: XXX: It seems the algorithm as described is not correct.  I don't
+        see why E1 must be larger than D2 (!) *)
+
+
     (* TODO *) return ()
   end
 
