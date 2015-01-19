@@ -71,8 +71,8 @@ let rec animate n pause states =
 let run arr =
   List.iter (fun sort ->
     let (_, result) = sort (Array.copy arr) in
-    Array.iter (Printf.printf "%i ") result;
-    print_newline ();
+    (*Array.iter (Printf.printf "%i ") result;
+    print_newline (); *)
     ()
   )
 
