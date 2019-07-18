@@ -108,7 +108,7 @@ let list_algs () =
   print_endline "available algorithms:";
   List.iter (fun (name,_) -> print_string "\t"; print_endline name) sorts
 
-let main sorted justrun n step algorithms =
+let main sorted reverse justrun n step algorithms =
 
   if algorithms = [] then begin
     print_newline ();
@@ -120,8 +120,8 @@ let main sorted justrun n step algorithms =
   else
   
   let pause () = if step then ignore (read_line ()) else Thread.delay 0.1 in
-  let arr = Array.init n (fun i -> i) in
-  if not (sorted) then shuffle arr;
+  let arr = Array.init n (fun i -> if reverse then n-i-1 else i) in
+  if not (sorted || reverse) then shuffle arr;
   if not justrun
   then
     animate n pause (List.map (animSort arr) algorithms)
@@ -140,6 +140,9 @@ let () =
       +> flag "--sorted" (no_arg)
          ~aliases:["-s"]
          ~doc:" start with a presorted array"
+      +> flag "--reverse" (no_arg)
+         ~aliases:["-r"]
+         ~doc:" start with a reverse sorted array"
       +> flag "--size" (optional_with_default 10 int)
          ~aliases:["-n"]
          ~doc:"n the size of the array to sort (default 10)"
@@ -147,7 +150,7 @@ let () =
          ~doc:" pause for input between each step"
       +> anon (sequence ("algorithm" %: Arg_type.of_alist_exn sorts))
     )
-    (fun justrun sorted n step algs () -> main sorted justrun n step algs)
+    (fun justrun sorted reverse n step algs () -> main sorted reverse justrun n step algs)
   |> Command.run
 
 (*
