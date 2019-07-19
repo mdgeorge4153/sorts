@@ -13,8 +13,9 @@ This project is built using OCaml 4.01 and depends on Jane Street's Core
 library.  The easiest way to get these is to install opam and then use opam to
 install core.
 
-NOTE: the project currently does not compile with OCaml > 4.01.  To get the correct
-version, install opam, and then run:
+NOTE: the project currently does not compile with OCaml > 4.01 (due to problems
+with unsafe usage of strings).  To get the correct version, install opam, and
+then run:
 
   opam switch 4.01.0
   eval `opam config env`
