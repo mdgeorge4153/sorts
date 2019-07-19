@@ -10,3 +10,4 @@
 *.native
 .depend
 complete.sh
+_build
