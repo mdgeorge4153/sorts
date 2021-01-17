@@ -27,7 +27,7 @@ module Utils (M : Monad) = struct
                  dowhile ~cond ~init:acc f
 
   let dountil ~cond ~init f =
-    dowhile (fun a -> cond a >>| not) init f
+    dowhile ~cond:(fun a -> cond a >>| not) ~init f
 
 end
 

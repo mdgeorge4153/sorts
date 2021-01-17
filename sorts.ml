@@ -73,7 +73,7 @@ module Sorter = struct
     (), a
 
   let printf f =
-    Printf.ksprintf (fun s -> return ()) f
+    Printf.ksprintf (fun _ -> return ()) f
 
 end
 

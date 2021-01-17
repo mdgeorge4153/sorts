@@ -25,7 +25,7 @@ module Make (M : SortMonad) = struct
     )
 
   let sort =
-    length >>= fun n ->
+    length >>= fun _ ->
     dountil ~cond:is_sorted ~init:1 (fun n ->
       printf "iteration %i" n >>= fun () ->
       shuffle >>= fun () ->

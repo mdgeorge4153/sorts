@@ -54,14 +54,14 @@ let advance cursor =
     thunk   = cursor.thunk
   } in
 
-  (** restore the invariant that future is non-empty *)
+  (* restore the invariant that future is non-empty *)
   match result.future with
-    | h::tl -> result
-    | []    -> let next,thunk = pop result.current result.thunk in
-               {result with
-                 future = [next];
-                 thunk  = thunk;
-               }
+    | _::_ -> result
+    | []   -> let next,thunk = pop result.current result.thunk in
+              {result with
+                future = [next];
+                thunk  = thunk;
+              }
 
 let retreat cursor = match cursor.history with
   | []             -> {cursor with future = (Start,cursor.current)::cursor.future}
@@ -97,7 +97,7 @@ let rec bind (f:'a t) (g: 'a -> 'b t) : 'b t = fun arr ->
 let return  x   _ = Return x
 let length      a = Return (Array.length a)
 let compare i j a = FCompare (i,j,  return (Util.compare a.(i) a.(j)))
-let swap    i j a = FSwap    (i,j, return ())
+let swap    i j _ = FSwap    (i,j, return ())
 
-let printf  f     = Printf.ksprintf (fun s a -> Print (s, return ())) f
+let printf  f     = Printf.ksprintf (fun s _ -> Print (s, return ())) f
 

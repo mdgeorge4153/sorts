@@ -14,19 +14,18 @@ let clear = "\027[2J\027[1;1H"
 
 (** returns a line of spaces of length n, with the string s at position i *)
 let line n s i =
-  let length = n + String.length s - 1 in
-  let result = String.make length ' '  in
-  String.blit s 0 result i (String.length s);
-  result
+  (String.make i ' ') ^ s ^ (String.make (n - i) ' ')
 
 (** returna a string of length n with s centered within it. *)
 let center s rlen =
-  let slen   = String.length s in
-  let result = String.make rlen ' ' in
-  let offset = max 0 (rlen - slen) / 2 in
-  let len    = min rlen slen in
-  String.blit s 0 result offset len;
-  result
+  let slen      = String.length s in
+  if slen > rlen
+  then
+    String.sub s 0 rlen
+  else
+    let pad_left  = (rlen - slen) / 2 in
+    let pad_right = rlen - slen - pad_left in
+    (String.make pad_left ' ') ^ s ^ (String.make pad_right ' ')
 
 (** return a list of lines *)
 let lines (cursor,name) =
@@ -50,7 +49,7 @@ let concat = List.map2 (fun l1 l2 -> l1^"         "^l2)
 
 let draw n sorts =
   let grids = List.map lines sorts in
-  let empty = Array.to_list (Array.create (n+2) "") in
+  let empty = Array.to_list (Array.make (n+2) "") in
   let lines = List.fold_left concat empty grids in
   List.iter print_endline lines;
   print_endline white;
@@ -70,7 +69,8 @@ let rec animate n pause states =
 
 let run arr =
   List.iter (fun sort ->
-    let (_, result) = sort (Array.copy arr) in
+    ignore (sort (Array.copy arr) : 'a * int array);
+    (*let (_,result) = sort (Array.copy arr) in*)
     (*Array.iter (Printf.printf "%i ") result;
     print_newline (); *)
     ()
@@ -119,7 +119,7 @@ let main sorted reverse justrun n step algorithms =
   end
   else
   
-  let pause () = if step then ignore (read_line ()) else Thread.delay 0.1 in
+  let pause () = if step then ignore (read_line () : string) else Thread.delay 0.1 in
   let arr = Array.init n (fun i -> if reverse then n-i-1 else i) in
   if not (sorted || reverse) then shuffle arr;
   if not justrun
@@ -129,8 +129,8 @@ let main sorted reverse justrun n step algorithms =
     run arr (List.map runSort algorithms)
 
 let () =
-  let open Core.Std in
-  Command.basic
+  let open Core in
+  Command.basic_spec
     ~summary:"\nDisplay animations of different sorting algorithms"
     Command.Spec.(
       empty
